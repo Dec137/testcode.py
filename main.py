@@ -12,7 +12,7 @@ logging.basicConfig(
 )
 
 # Constants
-TELEGRAM_TOKEN = '7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM'  # Your Telegram bot token
+TELEGRAM_TOKEN = '7031299961:AAEqNrR9hGiLALddVOihRt4lMY1kydlU5F0'  # Your Telegram bot token
 TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 
 # Telegram Bot Commands
