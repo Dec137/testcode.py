@@ -68,6 +68,7 @@ async def get_discounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
                        f"📦 SKU: {product['sku']}",
                 parse_mode='Markdown',
                 reply_markup=InlineKeyboardMarkup(keyboard)
+            )
             
         await update.message.reply_text("That's all our current discounts! 🎉")
         
