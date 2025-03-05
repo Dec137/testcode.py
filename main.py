@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TELEGRAM_TOKEN = '7031299961:AAHy0waGghDRRR4ll593q6vRs7PCDchxUdo'
+TELEGRAM_TOKEN = '7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM'
 TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
