@@ -80,9 +80,12 @@ def main():
     # Add error handler
     app.add_error_handler(error_handler)
 
-    # Start polling
+    # Start polling with a reduced frequency
     logging.info("Bot is running...")
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling(
+        drop_pending_updates=True,  # Ignore pending updates
+        poll_interval=5.0  # Poll every 5 seconds
+    )
 
 if __name__ == '__main__':
     main()
