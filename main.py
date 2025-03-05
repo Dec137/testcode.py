@@ -7,6 +7,28 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 TELEGRAM_TOKEN = '7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM'
 TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 
+from flask import Flask
+
+# Create a simple Flask app
+web_app = Flask(__name__)
+
+@web_app.route('/')
+def home():
+    return "Bot is running!"
+
+def main():
+    # Start the Flask app in a separate thread
+    import threading
+    threading.Thread(target=lambda: web_app.run(host="0.0.0.0", port=10000)).start()
+
+    # Start the Telegram bot
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("discounts", get_discounts))
+    
+    print("Bot is running...")
+    app.run_polling(drop_pending_updates=True)
+    
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Welcome to GiaxStore Discount Bot! 🛍️\n"
