@@ -1,9 +1,8 @@
 import json
+import os
 import requests
-from bs4 import BeautifulSoup
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
-from flask import Flask
 import logging
 
 # Configure logging
@@ -13,19 +12,12 @@ logging.basicConfig(
 )
 
 # Constants
-TELEGRAM_TOKEN = '7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM'
+TELEGRAM_TOKEN = os.getenv('7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM')  # Get token from environment variable
+BROWSERLESS_API_KEY = os.getenv('Rslb2B5jOC8sdzb61784bf0fbc8f4840652f1e7027')  # Browserless API key
 TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 
-# Create a Flask app for Render's health check
-web_app = Flask(__name__)
-
-@web_app.route('/')
-def home():
-    return "Bot is running!"
-
-@web_app.route('/health')
-def health_check():
-    return "OK", 200
+# Browserless API endpoint
+BROWSERLESS_URL = f"https://chrome.browserless.io/content?token={BROWSERLESS_API_KEY}"
 
 # Telegram Bot Commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,9 +28,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_discounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # Fetch and parse HTML
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-        response = requests.get(TARGET_URL, headers=headers)
+        # Fetch and parse HTML using Browserless
+        headers = {
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            "url": TARGET_URL,
+            "waitFor": 5000,  # Wait for 5 seconds to ensure the page loads
+            "gotoOptions": {
+                "waitUntil": "networkidle2"  # Wait until the network is idle
+            }
+        }
+        response = requests.post(BROWSERLESS_URL, headers=headers, json=payload)
+        response.raise_for_status()
+
+        # Parse the HTML content
+        from bs4 import BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # Extract product data
@@ -82,10 +88,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
 
 # Main function
 def main():
-    # Start Flask app in a separate thread for Render's health check
-    import threading
-    threading.Thread(target=lambda: web_app.run(host="0.0.0.0", port=10000)).start()
-
     # Start the Telegram bot
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     
