@@ -31,7 +31,14 @@ async def get_discounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Extract product data
         script = soup.find('script', {'id': 'shop-js-analytics'})
-        data = json.loads(script.text.split('meta = ')[1].split(';\n')[0])
+        if not script:
+            raise ValueError("Script tag with id 'shop-js-analytics' not found!")
+        
+        script_text = script.text
+        if 'meta = ' not in script_text:
+            raise ValueError("'meta = ' not found in script tag!")
+        
+        data = json.loads(script_text.split('meta = ')[1].split(';\n')[0])
         
         # Process products
         products = []
@@ -80,11 +87,11 @@ def main():
     # Add error handler
     app.add_error_handler(error_handler)
 
-    # Start polling with a reduced frequency
+    # Start polling with a 1-minute interval
     logging.info("Bot is running...")
     app.run_polling(
         drop_pending_updates=True,  # Ignore pending updates
-        poll_interval=5.0  # Poll every 5 seconds
+        poll_interval=60.0  # Poll every 60 seconds (1 minute)
     )
 
 if __name__ == '__main__':
