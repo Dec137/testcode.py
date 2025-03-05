@@ -3,32 +3,31 @@ import requests
 from bs4 import BeautifulSoup
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
+from flask import Flask
+import logging
 
+# Configure logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# Constants
 TELEGRAM_TOKEN = '7031299961:AAH_hIZhOMe0wKLK4wZD_W49eVyNJN9tUqM'
 TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 
-from flask import Flask
-
-# Create a simple Flask app
+# Create a Flask app for Render's health check
 web_app = Flask(__name__)
 
 @web_app.route('/')
 def home():
     return "Bot is running!"
 
-def main():
-    # Start the Flask app in a separate thread
-    import threading
-    threading.Thread(target=lambda: web_app.run(host="0.0.0.0", port=10000)).start()
+@web_app.route('/health')
+def health_check():
+    return "OK", 200
 
-    # Start the Telegram bot
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("discounts", get_discounts))
-    
-    print("Bot is running...")
-    app.run_polling(drop_pending_updates=True)
-    
+# Telegram Bot Commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Welcome to GiaxStore Discount Bot! 🛍️\n"
@@ -69,21 +68,36 @@ async def get_discounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
                        f"📦 SKU: {product['sku']}",
                 parse_mode='Markdown',
                 reply_markup=InlineKeyboardMarkup(keyboard)
-            )
             
         await update.message.reply_text("That's all our current discounts! 🎉")
         
     except Exception as e:
+        logging.error(f"Error fetching products: {e}")
         await update.message.reply_text(f"⚠️ Error fetching products: {str(e)}")
 
+# Error handler
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logging.error(f"Exception while handling an update: {context.error}")
+
+# Main function
 def main():
+    # Start Flask app in a separate thread for Render's health check
+    import threading
+    threading.Thread(target=lambda: web_app.run(host="0.0.0.0", port=10000)).start()
+
+    # Start the Telegram bot
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     
+    # Add handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("discounts", get_discounts))
     
-    print("Bot is running...")
-    app.run_polling()
+    # Add error handler
+    app.add_error_handler(error_handler)
+
+    # Start polling
+    logging.info("Bot is running...")
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
