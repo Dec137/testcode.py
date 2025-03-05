@@ -19,6 +19,16 @@ TARGET_URL = 'https://giaxstore.com/collections/sconti-selezionati'
 # Browserless API endpoint
 BROWSERLESS_URL = f"https://chrome.browserless.io/content?token={BROWSERLESS_API_KEY}"
 
+def main():
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("discounts", get_discounts))
+    
+    print("Bot is running...")
+    app.run_polling(
+        drop_pending_updates=True,  # Ignore pending updates
+        poll_interval=10.0  # Poll every 2 seconds
+    )
 # Telegram Bot Commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
